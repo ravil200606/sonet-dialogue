@@ -1,14 +1,15 @@
 package ars.otus.sonet.dialog.controller;
 
-import ars.otus.sonet.dialog.model.context.UserContext;
 import ars.otus.sonet.dialog.model.dto.DialogueMessage;
 import ars.otus.sonet.dialog.model.dto.DialogueText;
 import ars.otus.sonet.dialog.model.dto.ErrorResponse;
+import ars.otus.sonet.dialog.service.DialogueService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -27,8 +28,12 @@ import java.util.List;
         @ApiResponse(responseCode = "400", description = "Невалидные данные.",
                 content = @Content(schema = @Schema(implementation = String.class)))
 })
+@RequiredArgsConstructor
 @RestController
 public class DialogueController {
+
+    private final DialogueService service;
+
     /**
      * Диалог между двумя пользователями.
      *
@@ -47,8 +52,7 @@ public class DialogueController {
     @GetMapping(value = "/dialog/{user_id}/list",
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<DialogueMessage>> list(@PathVariable("user_id") String userId) {
-        log.info("Получен запрос диалогов от пользователя: {}", UserContext.getCurrentUser());
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(service.getList(userId));
     }
 
     /**
@@ -70,8 +74,7 @@ public class DialogueController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<DialogueMessage>> send(@PathVariable("user_id") String userId,
                                                       @RequestBody DialogueText text) {
-        log.info("Получен запрос на создание сообщения в диалоге от пользователя: {}. Адресат {} содержание {}.",
-                UserContext.getCurrentUser(), userId, text.getText());
+        service.send(userId, text.getText());
         return ResponseEntity.ok().build();
     }
 }
